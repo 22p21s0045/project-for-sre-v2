@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape the API server for Golden Signals metrics
+  - job_name: 'api-server'
+    static_configs:
+      - targets: ['api-server:3000']
+    metrics_path: /metrics
+    scheme: http
