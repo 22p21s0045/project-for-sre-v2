@@ -27,7 +27,7 @@ $Blue = "Cyan"
 
 function Write-Banner {
     Write-Host "============================================" -ForegroundColor $Blue
-    Write-Host "   🚀 Todo API Stress Test" -ForegroundColor $Blue
+    Write-Host "   [STRESS TEST] Todo API Stress Test" -ForegroundColor $Blue
     Write-Host "============================================" -ForegroundColor $Blue
     Write-Host "Configuration:" -ForegroundColor $Yellow
     Write-Host "  Base URL:    $Url" -ForegroundColor $Green
@@ -40,20 +40,20 @@ function Write-Banner {
 }
 
 function Test-ApiHealth {
-    Write-Host "🔍 Checking API health..." -ForegroundColor $Yellow
+    Write-Host "[CHECK] Checking API health..." -ForegroundColor $Yellow
     try {
         $response = Invoke-RestMethod -Uri "$Url/health" -Method Get -TimeoutSec 5
-        Write-Host "✅ API is healthy!" -ForegroundColor $Green
+        Write-Host "[OK] API is healthy!" -ForegroundColor $Green
         return $true
     }
     catch {
-        Write-Host "❌ API is not reachable at $Url" -ForegroundColor $Red
+        Write-Host "[FAIL] API is not reachable at $Url" -ForegroundColor $Red
         return $false
     }
 }
 
 function New-TestTodo {
-    Write-Host "📝 Creating test todo..." -ForegroundColor $Yellow
+    Write-Host "[SETUP] Creating test todo..." -ForegroundColor $Yellow
     try {
         $body = @{
             title = "Stress Test Todo"
@@ -61,11 +61,11 @@ function New-TestTodo {
         } | ConvertTo-Json
         
         $response = Invoke-RestMethod -Uri "$Url/todos" -Method Post -Body $body -ContentType "application/json"
-        Write-Host "✅ Created test todo with ID: $($response.id)" -ForegroundColor $Green
+        Write-Host "[OK] Created test todo with ID: $($response.id)" -ForegroundColor $Green
         return $response.id
     }
     catch {
-        Write-Host "❌ Failed to create test todo: $_" -ForegroundColor $Red
+        Write-Host "[FAIL] Failed to create test todo: $_" -ForegroundColor $Red
         return $null
     }
 }
@@ -80,7 +80,7 @@ function Invoke-StressTest {
         [int]$ConcurrentLimit
     )
     
-    Write-Host "🔥 Testing: $Description" -ForegroundColor $Yellow
+    Write-Host "[TEST] Testing: $Description" -ForegroundColor $Yellow
     Write-Host "   Endpoint: $Method $Endpoint"
     Write-Host "   Total Requests: $TotalRequests"
     Write-Host "   Concurrent: $ConcurrentLimit"
@@ -95,13 +95,13 @@ function Invoke-StressTest {
         param($url, $method, $body)
         try {
             if ($method -eq "GET") {
-                $null = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 30
+                $null = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 30 -UseBasicParsing
             }
             elseif ($method -eq "POST") {
-                $null = Invoke-WebRequest -Uri $url -Method Post -Body $body -ContentType "application/json" -TimeoutSec 30
+                $null = Invoke-WebRequest -Uri $url -Method Post -Body $body -ContentType "application/json" -TimeoutSec 30 -UseBasicParsing
             }
             elseif ($method -eq "PATCH") {
-                $null = Invoke-WebRequest -Uri $url -Method Patch -Body $body -ContentType "application/json" -TimeoutSec 30
+                $null = Invoke-WebRequest -Uri $url -Method Patch -Body $body -ContentType "application/json" -TimeoutSec 30 -UseBasicParsing
             }
             return $true
         }
@@ -143,8 +143,9 @@ function Invoke-StressTest {
     $elapsed = ($endTime - $startTime).TotalSeconds
     $rps = [Math]::Round($TotalRequests / $elapsed, 2)
     
-    Write-Host "   ✅ Success: $success | ❌ Failed: $failed" -ForegroundColor $(if ($failed -eq 0) { $Green } else { $Yellow })
-    Write-Host "   ⏱️  Time: ${elapsed}s | 📊 Rate: $rps req/s"
+    $resultColor = if ($failed -eq 0) { $Green } else { $Yellow }
+    Write-Host "   [OK] Success: $success | [FAIL] Failed: $failed" -ForegroundColor $resultColor
+    Write-Host "   Time: ${elapsed}s | Rate: $rps req/s"
     Write-Host ""
     
     return @{
@@ -158,13 +159,13 @@ function Invoke-StressTest {
 function Remove-TestTodo {
     param([int]$TodoId)
     
-    Write-Host "🧹 Cleaning up test data..." -ForegroundColor $Yellow
+    Write-Host "[CLEANUP] Cleaning up test data..." -ForegroundColor $Yellow
     try {
         Invoke-RestMethod -Uri "$Url/todos/$TodoId" -Method Delete
-        Write-Host "✅ Cleanup complete!" -ForegroundColor $Green
+        Write-Host "[OK] Cleanup complete!" -ForegroundColor $Green
     }
     catch {
-        Write-Host "⚠️ Cleanup warning: $_" -ForegroundColor $Yellow
+        Write-Host "[WARN] Cleanup warning: $_" -ForegroundColor $Yellow
     }
 }
 
@@ -186,7 +187,7 @@ Write-Host ""
 $TotalRequests = $Duration * $Rate
 
 Write-Host "============================================" -ForegroundColor $Blue
-Write-Host "   📊 Starting Stress Tests" -ForegroundColor $Blue
+Write-Host "   [START] Starting Stress Tests" -ForegroundColor $Blue
 Write-Host "============================================" -ForegroundColor $Blue
 Write-Host ""
 
@@ -212,14 +213,14 @@ switch ($TestType) {
         $body = '{"title":"Stress Test","description":"Created during stress test"}'
         $updateBody = '{"title":"Updated Stress Test"}'
         
-        Write-Host "📍 Phase 1: Health Checks" -ForegroundColor $Yellow
+        Write-Host "[PHASE 1] Health Checks" -ForegroundColor $Yellow
         $results += Invoke-StressTest -Endpoint "/health" -Method "GET" -Description "Health Check" -TotalRequests ([Math]::Floor($TotalRequests / 5)) -ConcurrentLimit $Concurrent
         
-        Write-Host "📍 Phase 2: Read Operations" -ForegroundColor $Yellow
+        Write-Host "[PHASE 2] Read Operations" -ForegroundColor $Yellow
         $results += Invoke-StressTest -Endpoint "/todos" -Method "GET" -Description "Get All Todos" -TotalRequests ([Math]::Floor($TotalRequests / 5)) -ConcurrentLimit $Concurrent
         $results += Invoke-StressTest -Endpoint "/todos/$testTodoId" -Method "GET" -Description "Get Single Todo" -TotalRequests ([Math]::Floor($TotalRequests / 5)) -ConcurrentLimit $Concurrent
         
-        Write-Host "📍 Phase 3: Write Operations" -ForegroundColor $Yellow
+        Write-Host "[PHASE 3] Write Operations" -ForegroundColor $Yellow
         $results += Invoke-StressTest -Endpoint "/todos" -Method "POST" -Body $body -Description "Create Todo" -TotalRequests ([Math]::Floor($TotalRequests / 5)) -ConcurrentLimit $Concurrent
         $results += Invoke-StressTest -Endpoint "/todos/$testTodoId" -Method "PATCH" -Body $updateBody -Description "Update Todo" -TotalRequests ([Math]::Floor($TotalRequests / 5)) -ConcurrentLimit $Concurrent
     }
@@ -237,16 +238,17 @@ $totalDuration = ($results | Measure-Object -Property Duration -Sum).Sum
 $avgRps = [Math]::Round(($results | Measure-Object -Property RPS -Average).Average, 2)
 
 Write-Host "============================================" -ForegroundColor $Blue
-Write-Host "   ✅ Stress Test Complete!" -ForegroundColor $Blue
+Write-Host "   [DONE] Stress Test Complete!" -ForegroundColor $Blue
 Write-Host "============================================" -ForegroundColor $Blue
 Write-Host ""
-Write-Host "📊 Summary:" -ForegroundColor $Yellow
+Write-Host "[SUMMARY]" -ForegroundColor $Yellow
 Write-Host "   Total Requests: $($totalSuccess + $totalFailed)"
 Write-Host "   Success: $totalSuccess" -ForegroundColor $Green
-Write-Host "   Failed: $totalFailed" -ForegroundColor $(if ($totalFailed -eq 0) { $Green } else { $Red })
+$failColor = if ($totalFailed -eq 0) { $Green } else { $Red }
+Write-Host "   Failed: $totalFailed" -ForegroundColor $failColor
 Write-Host "   Average RPS: $avgRps"
 Write-Host ""
-Write-Host "💡 Tips:" -ForegroundColor $Yellow
+Write-Host "[TIPS]" -ForegroundColor $Yellow
 Write-Host "  - Check Grafana dashboard to see the metrics"
 Write-Host "  - Monitor error rate, latency, and throughput"
 Write-Host "  - Prometheus URL: http://localhost:9090"
