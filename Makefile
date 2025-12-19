@@ -71,7 +71,7 @@ install:
 	cd web-app && bun install
 	@echo "✅ All dependencies installed!"
 
-dev: db-start
+dev: db-start db-migrate
 	@echo "🚀 Starting development environment..."
 	@echo "Starting API server and web app in parallel..."
 	@make -j2 dev-api dev-web
@@ -162,7 +162,7 @@ db-generate:
 
 monitoring:
 	@echo "📊 Starting monitoring stack (Prometheus + Grafana)..."
-	docker-compose -f docker-compose.prod.yml up -d prometheus grafana
+	docker-compose -f docker-compose.yml up -d prometheus grafana
 	@echo ""
 	@echo "✅ Monitoring stack started!"
 	@echo "   - Prometheus: http://localhost:9090"
@@ -173,20 +173,18 @@ monitoring:
 
 monitoring-down:
 	@echo "🛑 Stopping monitoring stack..."
-	docker-compose -f docker-compose.prod.yml down prometheus grafana
+	docker-compose -f docker-compose.yml stop prometheus grafana
 	@echo "✅ Monitoring stack stopped!"
 
 # Start everything including monitoring
 deploy:
-	@echo "🚀 Starting production deployment with monitoring..."
+	@echo "🚀 Starting production deployment..."
 	docker-compose -f docker-compose.prod.yml up -d
 	@echo ""
 	@echo "✅ All services started!"
 	@echo "   - Web App:    http://localhost"
 	@echo "   - API Server: http://localhost:3000"
 	@echo "   - Metrics:    http://localhost:3000/metrics"
-	@echo "   - Prometheus: http://localhost:9090"
-	@echo "   - Grafana:    http://localhost:3001 (admin/admin)"
 
 deploy-down:
 	@echo "🛑 Stopping production deployment..."

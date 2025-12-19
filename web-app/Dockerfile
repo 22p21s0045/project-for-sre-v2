@@ -3,6 +3,10 @@ FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
+# Accept API URL as build argument
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Copy package files
 COPY package.json bun.lockb* ./
 
