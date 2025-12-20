@@ -86,9 +86,25 @@ export class MetricsService implements OnModuleInit {
       prefix: 'nodejs_',
     });
 
-    // Initialize error counter with zero to make it visible in Prometheus
-    // even when no errors have occurred yet
-    this.httpErrorsTotal.inc(0);
+    // Initialize error counters with common error types to make them visible in Prometheus
+    // This ensures the metric appears even when no errors have occurred yet
+    const commonMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    const errorTypes = [
+      { status: '400', type: 'client_error' },
+      { status: '404', type: 'client_error' },
+      { status: '500', type: 'server_error' },
+    ];
+
+    commonMethods.forEach(method => {
+      errorTypes.forEach(({ status, type }) => {
+        this.httpErrorsTotal.inc({
+          method,
+          path: '/',
+          status_code: status,
+          error_type: type,
+        }, 0);
+      });
+    });
   }
 
   async getMetrics(): Promise<string> {
