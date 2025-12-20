@@ -49,9 +49,24 @@ services:
     container_name: todolist-web
     environment:
       VITE_API_URL: http://localhost:3000
+    expose:
+      - "80"
+    depends_on:
+      - api-server
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Reverse Proxy (Main entry point)
+  reverse-proxy:
+    build:
+      context: ./reverse-proxy
+      dockerfile: Dockerfile
+    container_name: todolist-reverse-proxy
     ports:
       - "80:80"
     depends_on:
+      - web-app
       - api-server
     networks:
       - app-network

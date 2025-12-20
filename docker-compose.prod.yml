@@ -49,20 +49,36 @@ services:
       args:
         VITE_API_URL: http://10.13.104.100:3000
     container_name: todolist-web
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - api-server
     networks:
-      - frontier-network
+      - app-network
     restart: unless-stopped
+
+  # Reverse Proxy (Main entry point)
+  reverse-proxy:
+    build:
+      context: ./reverse-proxy
+      dockerfile: Dockerfile
+    container_name: todolist-reverse-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - web-app
+      - api-server
+    networks:
+      - app-network
+    restart: unless-stopped
+
 
   # Nginx Prometheus Exporter
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: todolist-nginx-exporter
     command:
-      - --nginx.scrape-uri=http://web-app:80/stub_status
+      - --nginx.scrape-uri=http://reverse-proxy:80/stub_status
     ports:
       - "9113:9113"
     depends_on:
