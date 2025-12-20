@@ -95,6 +95,20 @@ services:
       - app-network
     restart: unless-stopped
 
+  # Nginx Prometheus Exporter
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: todolist-nginx-exporter
+    command:
+      - '-nginx.scrape-uri=http://web-app:80/stub_status'
+    ports:
+      - "9113:9113"
+    depends_on:
+      - web-app
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   prometheus_data:

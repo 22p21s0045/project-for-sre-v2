@@ -14,3 +14,10 @@ scrape_configs:
       - targets: ['api-server:3000']
     metrics_path: /metrics
     scheme: http
+
+  # Scrape Nginx metrics via nginx-exporter
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    metrics_path: /metrics
+    scheme: http
