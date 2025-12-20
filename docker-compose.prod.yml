@@ -71,21 +71,6 @@ services:
       - frontier-network
     restart: unless-stopped
 
-  blackbox-exporter:
-    image: prom/blackbox-exporter:latest
-    container_name: blackbox-exporter
-    volumes:
-      - ./monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
-    command:
-      - "--config.file=/etc/blackbox_exporter/config.yml"
-    ports:
-      - "9115:9115"
-    networks:
-      - frontier-network
-      - backier-network
-    restart: unless-stopped
-
-
 volumes:
   postgres_data:
 
