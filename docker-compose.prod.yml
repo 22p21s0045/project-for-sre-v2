@@ -62,7 +62,7 @@ services:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: todolist-nginx-exporter
     command:
-      - '-nginx.scrape-uri=http://localhost:80/stub_status'
+      - -nginx.scrape-uri=http://web-app:80/stub_status
     ports:
       - "9113:9113"
     depends_on:
