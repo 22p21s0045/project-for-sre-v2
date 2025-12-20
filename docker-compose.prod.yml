@@ -69,9 +69,9 @@ services:
       - web-app
       - api-server
     networks:
-      - app-network
+      - frontier-network
+      - backier-network
     restart: unless-stopped
-
 
   # Nginx Prometheus Exporter
   nginx-exporter:
