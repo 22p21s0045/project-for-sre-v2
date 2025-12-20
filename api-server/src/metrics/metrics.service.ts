@@ -85,6 +85,10 @@ export class MetricsService implements OnModuleInit {
       register: this.registry,
       prefix: 'nodejs_',
     });
+
+    // Initialize error counter with zero to make it visible in Prometheus
+    // even when no errors have occurred yet
+    this.httpErrorsTotal.inc(0);
   }
 
   async getMetrics(): Promise<string> {
