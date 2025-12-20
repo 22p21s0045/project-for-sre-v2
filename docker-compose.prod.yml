@@ -17,7 +17,8 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - app-network
+      - backier-network
+    restart: unless-stopped
 
   # NestJS API Server
   api-server:
@@ -36,7 +37,8 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - app-network
+      - frontier-network
+      - backier-network
     restart: unless-stopped
 
   # React Web App
@@ -52,7 +54,7 @@ services:
     depends_on:
       - api-server
     networks:
-      - app-network
+      - frontier-network
     restart: unless-stopped
 
   # Nginx Prometheus Exporter
@@ -66,7 +68,7 @@ services:
     depends_on:
       - web-app
     networks:
-      - app-network
+      - frontier-network
     restart: unless-stopped
 
   blackbox-exporter:
@@ -78,14 +80,17 @@ services:
       - "--config.file=/etc/blackbox_exporter/config.yml"
     ports:
       - "9115:9115"
+    networks:
+      - frontier-network
+      - backier-network
     restart: unless-stopped
 
 
 volumes:
   postgres_data:
-  prometheus_data:
-  grafana_data:
 
 networks:
-  app-network:
+  frontier-network:
+    driver: bridge
+  backier-network:
     driver: bridge
